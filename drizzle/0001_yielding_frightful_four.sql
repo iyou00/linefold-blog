@@ -1,0 +1,1 @@
+CREATE INDEX `posts_updated_idx` ON `posts` (`updated_at`,`id`);
