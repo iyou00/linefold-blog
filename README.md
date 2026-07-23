@@ -1,6 +1,8 @@
-# FIELD NOTES 个人博客
+# LINEFOLD 个人博客
 
 一个文字优先、双端适配、带轻量后台的个人博客。前台包含首页、随笔、教程、归档、关于和文章详情；后台包含登录、文章管理、Markdown 编辑、草稿/发布、站点介绍与国内图片外链校验。
+
+`LINEFOLD` 由 Line 与 Fold 组成：线条构成视觉，折叠承载记录。项目采用纸张色、黑色文字和淡紫几何线稿，让内容始终处在页面中心。
 
 ## 已实现功能
 
@@ -53,6 +55,10 @@ npm run dev
 - [宝塔面板部署](docs/DEPLOYMENT-BAOTA.md)
 - [后台使用](docs/ADMIN-GUIDE.md)
 - [安全与运维](docs/SECURITY-OPERATIONS.md)
+
+## 测试
+
+`tests/` 是开源维护的一部分。`npm test` 会先完成生产构建，再验证服务端渲染、后台匿名访问保护、本地资源策略、Markdown 安全管线、分页边界与各栏目构图；GitHub Actions 会在每次提交和 Pull Request 中执行同一套检查。
 
 ## 关键原则
 

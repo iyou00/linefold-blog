@@ -17,7 +17,7 @@ test("首页服务端渲染完整的文字型文章流", async () => {
   const response = await request("/", { headers: { accept: "text/html" } });
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /FIELD NOTES/);
+  assert.match(html, /LINEFOLD/);
   assert.match(html, /记录正在发生的事/);
   assert.match(html, /从零搭建一个安静、可靠的个人网站/);
   assert.match(html, /INDEX/);
@@ -60,7 +60,11 @@ test("全站页脚与文章结构化数据完整输出", async () => {
     request("/posts/quiet-personal-website", { headers: { accept: "text/html" } }),
   ]);
   assert.equal(aboutResponse.status, 200);
-  assert.match(await aboutResponse.text(), /class="site-footer [^"]+"/);
+  const about = await aboutResponse.text();
+  assert.match(about, /class="site-footer [^"]+"/);
+  assert.match(about, /一份持续生长的个人档案/);
+  assert.match(about, /WRITING PRINCIPLES/);
+  assert.match(about, /data-monogram="M"/);
   assert.equal(articleResponse.status, 200);
   const article = await articleResponse.text();
   assert.match(article, /application\/ld\+json/);

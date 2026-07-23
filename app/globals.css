@@ -174,7 +174,7 @@ button, input, textarea, select { font: inherit; }
 .line-study-signal .study-dot { top: 74%; left: 71%; }
 
 .line-study-about { opacity: .2; }
-.line-study-about::before { content: "M"; position: absolute; top: 26%; left: 17%; color: #d3d3cf; font: 400 clamp(150px, 14vw, 220px)/1 var(--serif); letter-spacing: -.12em; }
+.line-study-about::before { content: attr(data-monogram); position: absolute; top: 26%; left: 17%; color: #d3d3cf; font: 400 clamp(150px, 14vw, 220px)/1 var(--serif); letter-spacing: -.12em; }
 .line-study-about .box-a { top: 7%; left: 42%; width: 120px; height: 120px; }
 .line-study-about .box-b { top: 52%; left: 8%; width: 205px; height: 205px; }
 .line-study-about .box-c { top: 69%; left: 48%; width: 104px; height: 104px; }
@@ -194,18 +194,35 @@ button, input, textarea, select { font: inherit; }
 
 .page-intro { padding-bottom: 44px; }
 .page-intro h1, .about-page h1 { margin: 24px 0 18px; font: 400 clamp(40px, 3vw, 58px)/1.25 var(--serif); letter-spacing: -.04em; }
-.page-intro > p:last-child, .about-page > p { max-width: 620px; color: #686865; font-size: 16px; line-height: 1.8; }
+.page-intro > p:last-child { max-width: 620px; color: #686865; font-size: 16px; line-height: 1.8; }
 .archive-year { display: grid; grid-template-columns: 110px 1fr; border-top: 1px solid var(--line); }
 .archive-year > h2 { margin: 0; padding: 22px 0; font: 400 28px/1 var(--serif); }
 .archive-year article { display: grid; grid-template-columns: 70px 1fr auto; gap: 18px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid var(--line); }
 .archive-year time, .archive-year span { color: #666; font: 10px var(--mono); letter-spacing: .08em; }
 .archive-year a { font: 16px/1.5 var(--serif); }
 .archive-year a:hover { color: var(--accent); }
-.about-page hr { margin: 48px 0 30px; border: 0; border-top: 1px solid var(--line); }
-.about-page dl { margin: 0; }
-.about-page dl div { display: grid; grid-template-columns: 120px 1fr; padding: 14px 0; border-bottom: 1px solid var(--line); }
-.about-page dt { color: #666; font: 11px var(--mono); letter-spacing: .12em; }
-.about-page dd { margin: 0; font-size: 15px; }
+.about-page { max-width: 780px; }
+.about-intro h1 { max-width: 760px; }
+.about-lede { max-width: 690px; margin: 28px 0 0; color: #5f5f5b; font-size: 16px; line-height: 1.9; white-space: pre-line; }
+.about-statement { margin: 58px 0 0; padding: 28px 0 28px 28px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); border-left: 3px solid var(--accent); }
+.about-statement p { max-width: 660px; margin: 0; font: 400 clamp(24px, 2vw, 32px)/1.55 var(--serif); letter-spacing: -.025em; }
+.about-section { display: grid; grid-template-columns: minmax(190px, .72fr) minmax(0, 1.28fr); gap: clamp(34px, 5vw, 72px); margin-top: 72px; padding-top: 26px; border-top: 1px solid var(--line); }
+.about-section-heading .section-label { margin-bottom: 18px; }
+.about-section-heading h2 { margin: 0; font: 400 27px/1.45 var(--serif); letter-spacing: -.025em; }
+.about-index { margin: 0; padding: 0; list-style: none; }
+.about-index li { display: grid; grid-template-columns: 36px 1fr; gap: 16px; padding: 0 0 26px; }
+.about-index li + li { padding-top: 26px; border-top: 1px solid var(--line); }
+.about-index li > span, .about-principle-grid span { color: var(--accent); font: 500 10px/1.4 var(--mono); letter-spacing: .1em; }
+.about-index h3 { margin: -3px 0 8px; font: 400 20px/1.45 var(--serif); }
+.about-index p { margin: 0; color: #686865; font-size: 14px; line-height: 1.75; }
+.about-principle-grid { display: grid; gap: 0; }
+.about-principle-grid p { display: grid; grid-template-columns: 36px 1fr; gap: 16px; margin: 0; padding: 18px 0; border-bottom: 1px solid var(--line); font-size: 15px; line-height: 1.7; }
+.about-principle-grid p:first-child { padding-top: 0; }
+.about-profile { margin-top: 72px; }
+.about-profile dl { margin: 0; border-top: 1px solid var(--line); }
+.about-profile dl div { display: grid; grid-template-columns: 120px 1fr; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.about-profile dt { color: #666; font: 11px var(--mono); letter-spacing: .12em; }
+.about-profile dd { margin: 0; font-size: 15px; }
 
 .article-page { max-width: 720px; }
 .back-link { display: inline-block; margin-bottom: 38px; color: #666; font-size: 13px; }
@@ -274,6 +291,12 @@ button, input, textarea, select { font: inherit; }
   .site-footer { margin-top: 48px; }
   .pagination { gap: 10px; font-size: 9px; }
   .page-intro h1, .about-page h1 { font-size: 38px; }
+  .about-statement { margin-top: 44px; padding: 22px 0 22px 18px; }
+  .about-statement p { font-size: 24px; }
+  .about-section { display: block; margin-top: 54px; }
+  .about-section-heading { margin-bottom: 34px; }
+  .about-profile { margin-top: 54px; }
+  .about-profile dl div { grid-template-columns: 92px 1fr; }
   .archive-year { display: block; }
   .archive-year > h2 { padding-bottom: 14px; }
   .archive-year article { grid-template-columns: 54px 1fr; gap: 12px; }

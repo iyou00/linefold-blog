@@ -278,7 +278,7 @@ const defaultSettings: SiteSettings = {
   footerCopyright: "",
   startedYear: "2026",
   heroLine1: siteConfig.hero[0], heroLine2: siteConfig.hero[1], intro: siteConfig.intro,
-  about: "这里是 M 的个人记录。内容围绕项目实践、日常感受与教程展开。写作帮助我整理经验，也让这些经验能够被再次找到。",
+  about: "这里是 M 的长期个人记录。我写做过的项目，也写日常里值得留下的感受；遇到能够反复使用的方法，就把它整理成一篇教程。\n\n写作帮助我看清一件事怎样发生，也让零散经验拥有可以再次抵达的路径。这里追求清楚、诚实和耐读，更新遵循自己的节奏。",
   icpNumber: "",
   publicSecurityNumber: "",
   publicSecurityUrl: "",

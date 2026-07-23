@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "field-notes-blog",
+      name: "linefold-blog",
       script: "scripts/run-next.mjs",
       args: "start",
       cwd: __dirname,

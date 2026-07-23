@@ -11,9 +11,9 @@ export async function generateMetadata(): Promise<Metadata> {
     description: settings.description,
     openGraph: {
       type: "website", locale: "zh_CN", title, description: settings.description,
-      images: [{ url: "/og-field-notes.png", width: 1732, height: 909, alt: `${settings.siteName} — ${settings.heroLine1}${settings.heroLine2}` }],
+      images: [{ url: "/og-linefold.png", width: 1732, height: 909, alt: `${settings.siteName} — ${settings.heroLine1}${settings.heroLine2}` }],
     },
-    twitter: { card: "summary_large_image", title, description: settings.description, images: ["/og-field-notes.png"] },
+    twitter: { card: "summary_large_image", title, description: settings.description, images: ["/og-linefold.png"] },
     robots: { index: true, follow: true },
   };
 }

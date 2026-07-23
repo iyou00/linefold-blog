@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!post) return {};
   const title = post.seoTitle || post.title;
   const description = post.seoDescription || post.summary;
-  const images = [post.coverImageUrl || "/og-field-notes.png"];
+  const images = [post.coverImageUrl || "/og-linefold.png"];
   return {
     title,
     description,
@@ -44,7 +44,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     description: post.seoDescription || post.summary,
     mainEntityOfPage: articleUrl,
     url: articleUrl,
-    image: new URL(post.coverImageUrl || "/og-field-notes.png", baseUrl).toString(),
+    image: new URL(post.coverImageUrl || "/og-linefold.png", baseUrl).toString(),
     datePublished: post.publishedAt,
     dateModified: post.updatedAt,
     author: { "@type": "Person", name: settings.author },

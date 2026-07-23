@@ -46,9 +46,9 @@ function Navigation({ active }: Pick<Props, "active">) {
   );
 }
 
-function LineStudy({ variant, caption }: { variant: ArtVariant; caption: string }) {
+function LineStudy({ variant, caption, monogram }: { variant: ArtVariant; caption: string; monogram: string }) {
   return (
-    <div className={`line-study line-study-${variant}`} aria-hidden="true">
+    <div className={`line-study line-study-${variant}`} data-monogram={monogram} aria-hidden="true">
       <span className="study-box box-a iso-block" />
       <span className="study-box box-b" />
       <span className="study-box box-c" />
@@ -82,6 +82,7 @@ function SiteMeta({ settings, className }: { settings: SiteSettings; className: 
 
 export async function SiteShell({ active, children, showArt = true, artVariant = "home" }: Props) {
   const settings = await getSiteSettings();
+  const monogram = settings.author.trim().slice(0, 2).toUpperCase() || "ME";
   const socialLinks = ([1, 2, 3, 4] as const).flatMap((index) => {
     const platform = settings[`social${index}Platform`];
     const url = settings[`social${index}Url`];
@@ -113,7 +114,7 @@ export async function SiteShell({ active, children, showArt = true, artVariant =
         {children}
         <SiteMeta settings={settings} className="compact-site-footer" />
       </main>
-      {showArt ? <aside className="art-column"><LineStudy variant={artVariant} caption={`${settings.author} / ${settings.shortName}`} /><SiteMeta settings={settings} className="art-site-footer" /></aside> : null}
+      {showArt ? <aside className="art-column"><LineStudy variant={artVariant} caption={`${settings.author} / ${settings.shortName}`} monogram={monogram} /><SiteMeta settings={settings} className="art-site-footer" /></aside> : null}
     </div>
   );
 }
