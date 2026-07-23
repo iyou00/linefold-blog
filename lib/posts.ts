@@ -289,12 +289,20 @@ const defaultSettings: SiteSettings = {
 };
 
 const socialPlatforms = new Set(["", "douyin", "xiaohongshu", "x", "bilibili", "weibo", "github", "website"]);
+const legacyDefaults = {
+  siteName: "FIELD NOTES",
+  about: "这里是 M 的个人记录。内容围绕项目实践、日常感受与教程展开。写作帮助我整理经验，也让这些经验能够被再次找到。",
+};
 
 export async function getSiteSettings() {
   try {
     const db = await getDatabase();
     const rows = await db.all<{ key: string; value: string }>("SELECT key, value FROM site_settings ORDER BY key");
-    return { ...defaultSettings, ...Object.fromEntries(rows.map((row) => [row.key, row.value])) } as SiteSettings;
+    const settings = { ...defaultSettings, ...Object.fromEntries(rows.map((row) => [row.key, row.value])) } as SiteSettings;
+    if (settings.siteName === legacyDefaults.siteName) settings.siteName = defaultSettings.siteName;
+    if (settings.shortName === legacyDefaults.siteName) settings.shortName = defaultSettings.shortName;
+    if (settings.about === legacyDefaults.about) settings.about = defaultSettings.about;
+    return settings;
   } catch { return defaultSettings; }
 }
 

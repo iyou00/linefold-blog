@@ -74,6 +74,13 @@ test("全站页脚与文章结构化数据完整输出", async () => {
   assert.match(article, /<blockquote>/);
 });
 
+test("旧版默认品牌可平滑升级，同时保留后台自定义能力", async () => {
+  const source = await readFile(new URL("../lib/posts.ts", import.meta.url), "utf8");
+  assert.match(source, /legacyDefaults/);
+  assert.match(source, /settings\.siteName === legacyDefaults\.siteName/);
+  assert.match(source, /settings\.about === legacyDefaults\.about/);
+});
+
 test("Markdown 使用开源标准管线并保持统一安全策略", async () => {
   const [packageSource, articlePage, preview, renderer, imageParser] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8"),
