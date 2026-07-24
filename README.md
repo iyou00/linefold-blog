@@ -75,6 +75,10 @@ npm run dev
 - 生产密码通过 `node scripts/hash-password.mjs` 生成，明文密码和输出值都只保存在部署环境。
 - 安全问题请按 [SECURITY.md](SECURITY.md) 中的方式私下报告。
 
+## 社区支持
+
+学 AI，上 L 站：[LinuxDO](https://linux.do/)
+
 ## 开源许可
 
 项目采用 [MIT License](LICENSE)。
