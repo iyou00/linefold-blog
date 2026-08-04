@@ -67,7 +67,9 @@ export function AdminSiteSettings({ settings, activeSection, dirty, pending, mes
           <label>首页标题第一行<input value={settings.heroLine1} onChange={(event) => onUpdate("heroLine1", event.target.value)} /></label>
           <label>首页标题第二行<input value={settings.heroLine2} onChange={(event) => onUpdate("heroLine2", event.target.value)} /></label>
           <label className="span-2">首页介绍<textarea rows={4} value={settings.intro} onChange={(event) => onUpdate("intro", event.target.value)} /></label>
-          <label className="span-2">关于我<textarea rows={9} value={settings.about} onChange={(event) => onUpdate("about", event.target.value)} /></label>
+          <label className="span-2">IDENTITY / 个人介绍<textarea rows={7} maxLength={2000} value={settings.about} onChange={(event) => onUpdate("about", event.target.value)} /></label>
+          <label className="span-2">NOW / 当前关注<textarea rows={4} maxLength={600} value={settings.aboutNow} onChange={(event) => onUpdate("aboutNow", event.target.value)} placeholder="每行一条，最多四条" /></label>
+          <label className="span-2">COORDINATES / 所在地<input maxLength={80} value={settings.aboutLocation} onChange={(event) => onUpdate("aboutLocation", event.target.value)} placeholder="选填，例如 Shanghai / 上海" /></label>
         </div>
       </section> : null}
       {activeSection === "social" ? <section className="settings-section">

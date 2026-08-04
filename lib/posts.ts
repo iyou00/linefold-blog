@@ -256,6 +256,8 @@ export type SiteSettings = {
   heroLine2: string;
   intro: string;
   about: string;
+  aboutNow: string;
+  aboutLocation: string;
   icpNumber: string;
   publicSecurityNumber: string;
   publicSecurityUrl: string;
@@ -278,7 +280,9 @@ const defaultSettings: SiteSettings = {
   footerCopyright: "",
   startedYear: "2026",
   heroLine1: siteConfig.hero[0], heroLine2: siteConfig.hero[1], intro: siteConfig.intro,
-  about: "这里是 M 的长期个人记录。我写做过的项目，也写日常里值得留下的感受；遇到能够反复使用的方法，就把它整理成一篇教程。\n\n写作帮助我看清一件事怎样发生，也让零散经验拥有可以再次抵达的路径。这里追求清楚、诚实和耐读，更新遵循自己的节奏。",
+  about: "我长期关注产品如何从模糊问题走向清晰判断，也关心技术、设计与真实使用之间的关系。\n\n这里保存已经做过的选择、当时的依据，以及后来推翻它们的证据。记录让我看见变化，也提醒我保持诚实。",
+  aboutNow: "正在打磨 LINEFOLD，让内容、作品与长期维护形成一套稳定系统。\n持续关注 AI 产品、个人工具与真实工作流之间的连接。\n定期复盘已经做出的判断，也允许新的证据改变它们。",
+  aboutLocation: "",
   icpNumber: "",
   publicSecurityNumber: "",
   publicSecurityUrl: "",
@@ -292,6 +296,7 @@ const socialPlatforms = new Set(["", "douyin", "xiaohongshu", "x", "bilibili", "
 const legacyDefaults = {
   siteName: "FIELD NOTES",
   about: "这里是 M 的个人记录。内容围绕项目实践、日常感受与教程展开。写作帮助我整理经验，也让这些经验能够被再次找到。",
+  aboutV2: "这里是 M 的长期个人记录。我写做过的项目，也写日常里值得留下的感受；遇到能够反复使用的方法，就把它整理成一篇教程。\n\n写作帮助我看清一件事怎样发生，也让零散经验拥有可以再次抵达的路径。这里追求清楚、诚实和耐读，更新遵循自己的节奏。",
 };
 
 export async function getSiteSettings() {
@@ -301,7 +306,7 @@ export async function getSiteSettings() {
     const settings = { ...defaultSettings, ...Object.fromEntries(rows.map((row) => [row.key, row.value])) } as SiteSettings;
     if (settings.siteName === legacyDefaults.siteName) settings.siteName = defaultSettings.siteName;
     if (settings.shortName === legacyDefaults.siteName) settings.shortName = defaultSettings.shortName;
-    if (settings.about === legacyDefaults.about) settings.about = defaultSettings.about;
+    if ([legacyDefaults.about, legacyDefaults.aboutV2].includes(settings.about)) settings.about = defaultSettings.about;
     return settings;
   } catch { return defaultSettings; }
 }
@@ -314,6 +319,10 @@ export async function saveSiteSettings(input: SiteSettings) {
     if (typeof input[key] === "string") values[key] = input[key];
   }
   if (!values.siteName.trim() || !values.shortName.trim()) throw new Error("网站名称不能为空");
+  if (values.about.length > 2000) throw new Error("个人介绍不能超过 2000 个字");
+  if (values.aboutNow.length > 600) throw new Error("当前关注不能超过 600 个字");
+  if (values.aboutNow.split(/\r?\n/).filter((line) => line.trim()).length > 4) throw new Error("当前关注最多填写 4 条");
+  if (values.aboutLocation.length > 80) throw new Error("所在地不能超过 80 个字");
   if (values.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.contactEmail)) throw new Error("联系邮箱格式不正确");
   if (!["true", "false"].includes(values.showEmail)) throw new Error("右栏显示设置无效");
   if (!/^\d{4}$/.test(values.startedYear)) throw new Error("开始记录年份需要填写四位年份");

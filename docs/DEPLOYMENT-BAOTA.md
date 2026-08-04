@@ -27,15 +27,7 @@
 
 ## 二、上传与构建
 
-上传交付包并解压到网站目录，保留 `.env.node.local`、`public`、`scripts`、`package.json` 和源码目录，然后在宝塔终端执行：
-
-```bash
-cd /www/wwwroot/你的域名
-npm ci
-npm run build:node
-```
-
-`.env.node.local` 使用以下生产配置：
+上传交付包并解压到网站目录，保留 `public`、`scripts`、`package.json` 和源码目录。首次部署先将 `.env.node.example` 复制为 `.env.node.local`，然后填写以下生产配置：
 
 ```dotenv
 STORAGE_DRIVER=sqlite
@@ -48,6 +40,17 @@ SESSION_SECRET=至少32位随机字符串
 IMAGE_HOST_ALLOWLIST=你的OSS域名,aliyuncs.com,myqcloud.com,qiniucdn.com,clouddn.com
 SITE_URL=https://你的域名
 ```
+
+环境填写完成后，在宝塔终端执行：
+
+```bash
+cd /www/wwwroot/你的域名
+npm ci --include=dev
+npm run deploy:check
+npm run build:node
+```
+
+`deploy:check` 通过后再构建，可以提前发现 Node 版本、数据库权限、监听地址、域名和密钥问题。
 
 ## 三、添加 Node 项目
 
@@ -90,17 +93,19 @@ proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
 ## 五、数据库与备份
 
-文章、草稿与站点设置都保存在 `BLOG_DB_PATH` 指定的 SQLite 文件中。建议在宝塔计划任务中每天备份 `/www/wwwdata/field-notes/`，保留至少 14 份。
+文章、作品、评论、草稿、图片外链配置、关联关系与站点设置都保存在 `BLOG_DB_PATH` 指定的 SQLite 文件中。建议在宝塔计划任务中每天备份 `/www/wwwdata/field-notes/`，保留至少 14 份。
 
 执行文件级备份前，可以短暂停止 Node 项目，备份完成后重新启动。这样 SQLite 主文件、WAL 与 SHM 文件能够保持一致。
 
-代码更新流程：
+代码更新统一使用[宝塔安全升级指南](UPGRADE-BAOTA.md)：
 
-1. 备份数据库目录和 `.env.node.local`。
-2. 上传并覆盖代码文件，保留数据目录。
-3. 执行 `npm ci` 和 `npm run build:node`。
-4. 在宝塔 Node 项目管理器中重启项目。
-5. 检查首页、文章详情和后台登录。
+1. 在宝塔停止 Node 项目。
+2. 上传并覆盖代码文件，保留 `.env.node.local` 和外部数据目录。
+3. 在项目目录执行 `npm run upgrade:baota`。
+4. 在宝塔启动 Node 项目。
+5. 执行 `npm run healthcheck:node`，再检查首页、WORKS、留言提交和后台审核。
+
+升级脚本会先验证生产环境、备份 SQLite 和环境文件，再安装锁定依赖并构建。旧项目仍在监听端口时，脚本会停止升级，避免覆盖运行中的构建产物。
 
 ## 六、安全建议
 

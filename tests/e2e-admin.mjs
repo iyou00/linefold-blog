@@ -75,4 +75,40 @@ const remove = await fetch(`${base}/api/admin/posts/${post.id}`, {
 });
 if (remove.status !== 200) throw new Error(`delete failed: ${remove.status} ${await remove.text()}`);
 
-console.log(JSON.stringify({ login: true, admin: true, create: true, list: true, delete: true, imagePolicy: true, siteSettings: true }));
+const workPayload = {
+  slug: `e2e-work-${Date.now()}`,
+  title: "后台端到端验证作品",
+  summary: "验证作品、图片开关与关联文章保存流程。",
+  tags: ["TEST", "PRODUCT"],
+  linkLabel: "GitHub",
+  linkUrl: "https://github.com/example/linefold",
+  showGallery: true,
+  images: [],
+  relatedPostIds: [],
+  status: "draft",
+  publishedAt: new Date().toISOString(),
+};
+const createWork = await fetch(`${base}/api/admin/works`, {
+  method: "POST",
+  headers: { cookie, origin: base, "content-type": "application/json" },
+  body: JSON.stringify(workPayload),
+});
+if (createWork.status !== 201) throw new Error(`create work failed: ${createWork.status} ${await createWork.text()}`);
+const { work } = await createWork.json();
+assert.ok(work.id);
+assert.equal(work.showGallery, true);
+
+const rejectedWorkImage = await fetch(`${base}/api/admin/works/${work.id}`, {
+  method: "PUT",
+  headers: { cookie, origin: base, "content-type": "application/json" },
+  body: JSON.stringify({ ...workPayload, images: [{ url: "https://images.unsplash.com/blocked.jpg", caption: "blocked" }] }),
+});
+assert.equal(rejectedWorkImage.status, 400);
+
+const removeWork = await fetch(`${base}/api/admin/works/${work.id}`, {
+  method: "DELETE",
+  headers: { cookie, origin: base },
+});
+if (removeWork.status !== 200) throw new Error(`delete work failed: ${removeWork.status} ${await removeWork.text()}`);
+
+console.log(JSON.stringify({ login: true, admin: true, create: true, list: true, delete: true, imagePolicy: true, siteSettings: true, works: true }));

@@ -27,6 +27,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+.preview-server-*.log
 /artifacts/
 
 # env files (can opt-in for committing if needed)
@@ -41,6 +42,7 @@ CREDENTIALS.local.md
 
 # typescript
 next-env.d.ts
+*.tsbuildinfo
 /dist/
 /.wrangler/
 /outputs/

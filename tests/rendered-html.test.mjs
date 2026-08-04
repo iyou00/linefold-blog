@@ -21,10 +21,11 @@ test("首页服务端渲染完整的文字型文章流", async () => {
   assert.match(html, /记录正在发生的事/);
   assert.match(html, /从零搭建一个安静、可靠的个人网站/);
   assert.match(html, /INDEX/);
-  assert.match(html, /NOTES/);
-  assert.match(html, /TUTORIALS/);
+  assert.match(html, /WRITING/);
+  assert.match(html, /WORKS/);
   assert.match(html, /ARCHIVE/);
   assert.match(html, /ABOUT/);
+  assert.doesNotMatch(html, /GUESTBOOK \/ 留言/);
   assert.doesNotMatch(html, /PROJECT LOG/);
   assert.doesNotMatch(html, /TOPICS \/ 主题索引/);
 });
@@ -39,6 +40,12 @@ test("后台登录页可访问，管理接口默认拒绝匿名请求", async ()
 
   const api = await request("/api/admin/posts", { headers: { accept: "application/json" } });
   assert.equal(api.status, 401);
+  const worksApi = await request("/api/admin/works", { headers: { accept: "application/json" } });
+  assert.equal(worksApi.status, 401);
+  const commentsApi = await request("/api/admin/comments", { headers: { accept: "application/json" } });
+  assert.equal(commentsApi.status, 401);
+  const publicComment = await request("/api/comments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ content: "测试留言" }) });
+  assert.equal(publicComment.status, 403);
 });
 
 test("前台资源保持本地化", async () => {
@@ -54,7 +61,7 @@ test("前台资源保持本地化", async () => {
   assert.match(css, /\.main-column\s*\{[^}]*overflow-y:\s*auto/s);
 });
 
-test("全站页脚与文章结构化数据完整输出", async () => {
+test("ABOUT 信息结构与文章详情互动完整输出", async () => {
   const [aboutResponse, articleResponse] = await Promise.all([
     request("/about", { headers: { accept: "text/html" } }),
     request("/posts/quiet-personal-website", { headers: { accept: "text/html" } }),
@@ -62,8 +69,11 @@ test("全站页脚与文章结构化数据完整输出", async () => {
   assert.equal(aboutResponse.status, 200);
   const about = await aboutResponse.text();
   assert.match(about, /class="site-footer [^"]+"/);
-  assert.match(about, /一份持续生长的个人档案/);
-  assert.match(about, /WRITING PRINCIPLES/);
+  assert.match(about, /IDENTITY/);
+  assert.match(about, /NOW/);
+  assert.match(about, /COORDINATES/);
+  assert.doesNotMatch(about, /WHAT LIVES HERE|WRITING PRINCIPLES/);
+  assert.doesNotMatch(about, /GUESTBOOK \/ 留言/);
   assert.match(about, /data-monogram="M"/);
   assert.equal(articleResponse.status, 200);
   const article = await articleResponse.text();
@@ -72,13 +82,18 @@ test("全站页脚与文章结构化数据完整输出", async () => {
   assert.match(article, /rel="canonical"/);
   assert.match(article, /<h2>为什么重新做一个博客<\/h2>/);
   assert.match(article, /<blockquote>/);
+  assert.match(article, /GUESTBOOK \/ 留言/);
+  assert.match(article, /LATEST 05/);
+  assert.match(article, /placeholder="留下一句话…"/);
+  assert.doesNotMatch(article, /留言昵称/);
 });
 
 test("旧版默认品牌可平滑升级，同时保留后台自定义能力", async () => {
   const source = await readFile(new URL("../lib/posts.ts", import.meta.url), "utf8");
   assert.match(source, /legacyDefaults/);
   assert.match(source, /settings\.siteName === legacyDefaults\.siteName/);
-  assert.match(source, /settings\.about === legacyDefaults\.about/);
+  assert.match(source, /legacyDefaults\.aboutV2/);
+  assert.match(source, /\.includes\(settings\.about\)/);
 });
 
 test("Markdown 使用开源标准管线并保持统一安全策略", async () => {
@@ -101,11 +116,11 @@ test("Markdown 使用开源标准管线并保持统一安全策略", async () =>
   assert.match(imageParser, /imageReference/);
 });
 
-test("首页、随笔、教程与归档使用各自的右栏构图", async () => {
+test("首页、写作与归档使用各自的右栏构图", async () => {
   const paths = [
     ["/", "line-study-home"],
-    ["/notes", "line-study-orbit"],
-    ["/tutorials", "line-study-stacks"],
+    ["/writing", "line-study-orbit"],
+    ["/writing?category=tutorials", "line-study-stacks"],
     ["/archive", "line-study-timeline"],
   ];
   for (const [path, variant] of paths) {
@@ -115,13 +130,67 @@ test("首页、随笔、教程与归档使用各自的右栏构图", async () =>
   }
 });
 
-test("RSS 已移除且分页边界返回 404", async () => {
-  const [rss, invalidNotesPage, invalidArchivePage] = await Promise.all([
+test("旧栏目跳转到 WRITING，RSS 已移除且分页边界返回 404", async () => {
+  const [rss, oldNotes, oldTutorials, invalidWritingPage, invalidArchivePage] = await Promise.all([
     request("/rss.xml", { headers: { accept: "application/rss+xml" } }),
-    request("/notes?page=2", { headers: { accept: "text/html" } }),
+    request("/notes", { headers: { accept: "text/html" }, redirect: "manual" }),
+    request("/tutorials?page=2", { headers: { accept: "text/html" }, redirect: "manual" }),
+    request("/writing?page=2", { headers: { accept: "text/html" } }),
     request("/archive?page=0", { headers: { accept: "text/html" } }),
   ]);
   assert.equal(rss.status, 404);
-  assert.equal(invalidNotesPage.status, 404);
+  assert.ok([307, 308].includes(oldNotes.status));
+  assert.match(oldNotes.headers.get("location") || "", /\/writing\?category=notes/);
+  assert.ok([307, 308].includes(oldTutorials.status));
+  assert.match(oldTutorials.headers.get("location") || "", /\/writing\?category=tutorials/);
+  assert.equal(invalidWritingPage.status, 404);
   assert.equal(invalidArchivePage.status, 404);
+});
+
+test("WORKS 页面、数据模型和 CASE 交互结构完整", async () => {
+  const response = await request("/works", { headers: { accept: "text/html" } });
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /WORKS \/ SELECTED OUTPUT/);
+  assert.match(html, /第一件作品正在整理中/);
+  assert.match(html, /work-concept/);
+  assert.match(html, /work-preview-site-footer/);
+  assert.doesNotMatch(html, /GUESTBOOK \/ 留言/);
+
+  const [schema, worksLibrary, gallery, dashboard] = await Promise.all([
+    readFile(new URL("../db/schema.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/works.ts", import.meta.url), "utf8"),
+    readFile(new URL("../components/work-gallery.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/admin-dashboard.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(schema, /workImages/);
+  assert.match(schema, /workRelatedPosts/);
+  assert.match(worksLibrary, /最多关联 3 篇文章/);
+  assert.match(worksLibrary, /isAllowedImageUrl/);
+  assert.match(gallery, /CONCEPT PREVIEW \/ 内置示意图/);
+  assert.match(gallery, /ArrowLeft/);
+  assert.match(dashboard, /作品管理/);
+});
+
+test("详情页评论使用持久化审核流并统一展示最新内容", async () => {
+  const [schema, commentsLibrary, shell, commentsView, dashboard, css, migration] = await Promise.all([
+    readFile(new URL("../db/schema.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/comments.ts", import.meta.url), "utf8"),
+    readFile(new URL("../components/site-shell.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/global-comments.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/admin-dashboard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+    readFile(new URL("../drizzle/0003_lazy_jigsaw.sql", import.meta.url), "utf8"),
+  ]);
+  assert.match(schema, /comments_status_created_idx/);
+  assert.match(commentsLibrary, /status = 'approved'.*LIMIT 6/s);
+  assert.match(commentsLibrary, /10 \* 60 \* 1000/);
+  assert.match(shell, /<GlobalComments/);
+  assert.match(shell, /showComments \? getPublicComments\(\)/);
+  assert.ok(commentsView.indexOf("global-comment-list") < commentsView.indexOf("comment-form"));
+  assert.doesNotMatch(commentsView, /comment\.nickname/);
+  assert.match(css, /\.comment-note\s*\{[^}]*linear-gradient/s);
+  assert.match(css, /\.admin-primary-nav\s*\{[^}]*grid-template-columns:\s*1fr/s);
+  assert.match(dashboard, /评论审核/);
+  assert.match(migration, /CREATE TABLE `comments`/);
 });

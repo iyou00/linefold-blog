@@ -171,7 +171,17 @@ SQLite 文件由应用首次运行时自动创建，文件路径为：
 /www/wwwdata/field-notes/field-notes.sqlite
 ```
 
-## 5. 构建 Node 生产版本
+## 5. 检查生产配置
+
+执行：
+
+```bash
+npm run deploy:check
+```
+
+预检通过后再构建。已有站点升级请使用[宝塔安全升级指南](UPGRADE-BAOTA.md)。
+
+## 6. 构建 Node 生产版本
 
 确认当前位于项目目录：
 
@@ -186,70 +196,7 @@ npm run build:node
 Compiled successfully
 ```
 
-### 处理 `.openai/hosting.json` 缺失
-
-若 TypeScript 检查出现：
-
-```text
-./vite.config.ts:3:27
-Type error: Cannot find module './.openai/hosting.json'
-```
-
-这份 `vite.config.ts` 用于另一套 Vite/OpenAI Hosting 构建，宝塔的 Next.js Node 构建会在类型检查阶段读取它。将文件保留为备份名称：
-
-```bash
-cd /www/wwwroot/example.com
-mv vite.config.ts vite.config.ts.openai-hosting
-npm run build:node
-```
-
-需要恢复该配置时执行：
-
-```bash
-mv vite.config.ts.openai-hosting vite.config.ts
-```
-
-后续每次重新上传项目代码后，请确认 `vite.config.ts` 是否再次出现，并在 Node 构建前按同样方式处理。
-
-## 6. 固定应用监听地址与端口
-
-部分环境中，启动脚本可能监听 IPv6 回环地址 `::1:3100`。将 Linux 生产环境使用的监听参数固定到 `start:node` 脚本。
-
-先备份：
-
-```bash
-cd /www/wwwroot/example.com
-cp package.json package.json.bak
-```
-
-执行：
-
-```bash
-node - <<'NODE'
-const fs = require('fs');
-
-const file = 'package.json';
-const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
-
-pkg.scripts['start:node'] =
-  'HOSTNAME=127.0.0.1 PORT=3100 NODE_ENV=production node scripts/run-next.mjs start';
-
-fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
-console.log(pkg.scripts['start:node']);
-NODE
-```
-
-确认启动脚本：
-
-```bash
-node -p "require('./package.json').scripts['start:node']"
-```
-
-预期输出：
-
-```text
-HOSTNAME=127.0.0.1 PORT=3100 NODE_ENV=production node scripts/run-next.mjs start
-```
+Node 构建会自动处理独立运行目录、静态资源和 `public` 文件。`HOSTNAME` 与 `PORT` 直接从 `.env.node.local` 读取，无需改名配置文件或手工修改 `package.json`。
 
 宝塔中的启动命令仍填写：
 

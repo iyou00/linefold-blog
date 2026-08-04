@@ -12,7 +12,11 @@
     "dev:node": "node scripts/run-next.mjs dev",
     "build:node": "node scripts/run-next.mjs build",
     "start:node": "node scripts/run-next.mjs start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs",
+    "deploy:check": "node scripts/upgrade-baota.mjs --check",
+    "backup:node": "node scripts/upgrade-baota.mjs --backup-only",
+    "upgrade:baota": "node scripts/upgrade-baota.mjs",
+    "healthcheck:node": "node scripts/healthcheck-node.mjs",
+    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/deployment-safety.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },

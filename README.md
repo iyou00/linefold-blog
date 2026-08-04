@@ -1,6 +1,6 @@
 # LINEFOLD 个人博客
 
-一个文字优先、双端适配、带轻量后台的个人博客。前台包含首页、随笔、教程、归档、关于和文章详情；后台包含登录、文章管理、Markdown 编辑、草稿/发布、站点介绍与国内图片外链校验。
+一个文字优先、双端适配、带轻量后台的个人博客。前台包含首页、WRITING、WORKS、归档、关于、文章详情、CASE 和详情页匿名留言；后台包含登录、文章管理、作品管理、评论审核、Markdown 编辑、草稿/发布、站点介绍与国内图片外链校验。
 
 `LINEFOLD` 由 Line 与 Fold 组成：线条构成视觉，折叠承载记录。项目采用纸张色、黑色文字和淡紫几何线稿，让内容始终处在页面中心。
 
@@ -8,7 +8,8 @@
 
 - 响应式三栏桌面布局与单栏手机布局
 - 最新文章自动放大，其余文章按时间列表排列
-- `NOTES`、`TUTORIALS`、`ARCHIVE` 与文章详情
+- `WRITING` 分类筛选、`WORKS` 作品索引、`ARCHIVE` 与详情页面
+- 作品 CASE、自定义链接、可选图片组、概念示意图与关联文章
 - CodeMirror 6 Markdown 写作、CommonMark/GFM 渲染、安全链接与外链图片
 - 后台账号密码登录、签名 Cookie 与服务端权限校验
 - 文章新增、编辑、删除、草稿、发布、标签和 SEO 字段
@@ -32,6 +33,8 @@ npm run dev:node
 
 - 博客：`http://localhost:3100`
 - 后台：`http://localhost:3100/admin/login`
+
+宝塔现有站点升级请直接使用：[宝塔安全升级指南](docs/UPGRADE-BAOTA.md)。停止 Node 项目后，执行 `npm run upgrade:baota` 即可完成预检、备份、依赖安装与生产构建。
 
 初始账号密码保存在本地文件 `CREDENTIALS.local.md`。该文件已加入忽略列表。
 

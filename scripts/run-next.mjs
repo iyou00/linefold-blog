@@ -1,26 +1,16 @@
 import { spawn } from "node:child_process";
-import { cp, readFile } from "node:fs/promises";
+import { cp } from "node:fs/promises";
 import { resolve } from "node:path";
+import { inspectNodeDeployment, loadNodeEnv, printInspection } from "./node-deploy-utils.mjs";
 
-async function loadEnv() {
-  try {
-    const source = await readFile(resolve(".env.node.local"), "utf8");
-    for (const rawLine of source.split(/\r?\n/)) {
-      const line = rawLine.trim();
-      if (!line || line.startsWith("#")) continue;
-      const index = line.indexOf("=");
-      if (index < 1) continue;
-      const key = line.slice(0, index).trim();
-      const value = line.slice(index + 1).trim();
-      process.env[key] ??= value;
-    }
-  } catch {
-    console.error("缺少 .env.node.local，请从 .env.node.example 复制并配置。");
-    process.exit(1);
-  }
+let envFile;
+try {
+  envFile = loadNodeEnv();
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  console.error("请从 .env.node.example 复制并配置 .env.node.local。");
+  process.exit(1);
 }
-
-await loadEnv();
 const mode = process.argv[2];
 const commands = {
   dev: [resolve("node_modules/next/dist/bin/next"), "dev", "-p", process.env.PORT || "3100"],
@@ -33,15 +23,35 @@ if (!args) {
   process.exit(1);
 }
 
+if (mode === "start") {
+  const report = inspectNodeDeployment({ strictProduction: false, checkDatabase: true, envFile });
+  printInspection(report);
+  if (report.errors.length) process.exit(1);
+}
+
 const child = spawn(process.execPath, args, {
   stdio: "inherit",
   env: { ...process.env, NODE_ENV: mode === "dev" ? "development" : "production" },
 });
-const result = await new Promise((resolveExit) => {
-  child.on("exit", (code, signal) => resolveExit({ code: code ?? 1, signal }));
-});
+let shutdownTimer;
+function forwardSignal(signal) {
+  if (child.exitCode !== null || child.signalCode) return;
+  child.kill(signal);
+  shutdownTimer ??= setTimeout(() => child.kill("SIGKILL"), 10000);
+  shutdownTimer.unref();
+}
+const stopOnInterrupt = () => forwardSignal("SIGINT");
+const stopOnTerminate = () => forwardSignal("SIGTERM");
+process.once("SIGINT", stopOnInterrupt);
+process.once("SIGTERM", stopOnTerminate);
 
-if (result.signal) process.kill(process.pid, result.signal);
+const result = await new Promise((resolveExit, reject) => {
+  child.once("error", reject);
+  child.once("exit", (code, signal) => resolveExit({ code: code ?? (signal ? 0 : 1), signal }));
+});
+if (shutdownTimer) clearTimeout(shutdownTimer);
+process.removeListener("SIGINT", stopOnInterrupt);
+process.removeListener("SIGTERM", stopOnTerminate);
 
 if (mode === "build" && result.code === 0) {
   await cp(resolve(".next/static"), resolve(".next/standalone/.next/static"), {

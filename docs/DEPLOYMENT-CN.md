@@ -27,7 +27,7 @@ npm run build:node
 - `public`
 - 生产环境变量文件
 
-服务启动命令为 `node server.js`。设置 `HOSTNAME=0.0.0.0`、`PORT=3100`、`STORAGE_DRIVER=sqlite` 和 `BLOG_DB_PATH=/你的持久化目录/field-notes.sqlite`。
+进入 `.next/standalone` 后使用 `node server.js` 启动。设置 `HOSTNAME=127.0.0.1`、`PORT=3100`、`STORAGE_DRIVER=sqlite` 和 `BLOG_DB_PATH=/你的持久化目录/field-notes.sqlite`，公网访问统一经过 Nginx。
 
 ## Docker 部署
 

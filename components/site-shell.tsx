@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { GlobalComments } from "@/components/global-comments";
+import { getPublicComments } from "@/lib/comments";
 import { navigation } from "@/lib/site-config";
 import { getSiteSettings, type SiteSettings } from "@/lib/posts";
 
@@ -6,7 +8,9 @@ type Props = {
   active: (typeof navigation)[number]["label"];
   children: React.ReactNode;
   showArt?: boolean;
+  showComments?: boolean;
   artVariant?: ArtVariant;
+  wide?: boolean;
 };
 
 export type ArtVariant = "home" | "orbit" | "stacks" | "timeline" | "fold" | "signal" | "about";
@@ -67,7 +71,7 @@ function LineStudy({ variant, caption, monogram }: { variant: ArtVariant; captio
   );
 }
 
-function SiteMeta({ settings, className }: { settings: SiteSettings; className: string }) {
+export function SiteFooter({ settings, className }: { settings: SiteSettings; className: string }) {
   return (
     <footer className={`site-footer ${className}`}>
       <span>{settings.footerCopyright || `© ${new Date().getFullYear()} ${settings.shortName}`}</span>
@@ -80,8 +84,11 @@ function SiteMeta({ settings, className }: { settings: SiteSettings; className: 
   );
 }
 
-export async function SiteShell({ active, children, showArt = true, artVariant = "home" }: Props) {
-  const settings = await getSiteSettings();
+export async function SiteShell({ active, children, showArt = true, showComments = false, artVariant = "home", wide = false }: Props) {
+  const [settings, comments] = await Promise.all([
+    getSiteSettings(),
+    showComments ? getPublicComments() : Promise.resolve([]),
+  ]);
   const monogram = settings.author.trim().slice(0, 2).toUpperCase() || "ME";
   const socialLinks = ([1, 2, 3, 4] as const).flatMap((index) => {
     const platform = settings[`social${index}Platform`];
@@ -90,7 +97,7 @@ export async function SiteShell({ active, children, showArt = true, artVariant =
     return meta && url ? [{ ...meta, platform, url }] : [];
   });
   return (
-    <div className="site-frame">
+    <div className={wide ? "site-frame site-frame-wide" : "site-frame"}>
       <aside className="sidebar">
         <Link className="brand" href="/" aria-label={`${settings.siteName} 首页`}>
           {settings.shortName}
@@ -110,11 +117,12 @@ export async function SiteShell({ active, children, showArt = true, artVariant =
         </details>
       </header>
 
-      <main className="main-column">
+      <main className={wide ? "main-column main-column-wide" : "main-column"}>
         {children}
-        <SiteMeta settings={settings} className="compact-site-footer" />
+        {showComments ? <div className="compact-comments"><GlobalComments comments={comments} /></div> : null}
+        <SiteFooter settings={settings} className="compact-site-footer" />
       </main>
-      {showArt ? <aside className="art-column"><LineStudy variant={artVariant} caption={`${settings.author} / ${settings.shortName}`} monogram={monogram} /><SiteMeta settings={settings} className="art-site-footer" /></aside> : null}
+      {showArt ? <aside className="art-column"><LineStudy variant={artVariant} caption={`${settings.author} / ${settings.shortName}`} monogram={monogram} />{showComments ? <div className="art-comments"><GlobalComments comments={comments} /></div> : null}<SiteFooter settings={settings} className="art-site-footer" /></aside> : null}
     </div>
   );
 }

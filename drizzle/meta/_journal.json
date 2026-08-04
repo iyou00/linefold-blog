@@ -15,6 +15,20 @@
       "when": 1784529263275,
       "tag": "0001_yielding_frightful_four",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1785776440580,
+      "tag": "0002_polite_nightshade",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1785805100270,
+      "tag": "0003_lazy_jigsaw",
+      "breakpoints": true
     }
   ]
 }

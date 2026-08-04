@@ -9,8 +9,8 @@ export const siteConfig = {
 
 export const navigation = [
   { href: "/", label: "INDEX" },
-  { href: "/notes", label: "NOTES" },
-  { href: "/tutorials", label: "TUTORIALS" },
+  { href: "/writing", label: "WRITING" },
+  { href: "/works", label: "WORKS" },
   { href: "/archive", label: "ARCHIVE" },
   { href: "/about", label: "ABOUT" },
 ] as const;

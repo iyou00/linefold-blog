@@ -1,25 +1,41 @@
 import "server-only";
 
-type SqlValue = string | number | null;
+export type SqlValue = string | number | null;
+export type DatabaseStatement = { sql: string; values?: SqlValue[] };
 type DatabaseAdapter = {
   all<T>(sql: string, values?: SqlValue[]): Promise<T[]>;
   run(sql: string, values?: SqlValue[]): Promise<void>;
+  batch(statements: DatabaseStatement[]): Promise<void>;
+};
+
+type D1PreparedStatement = {
+  all<T>(): Promise<{ results: T[] }>;
+  run(): Promise<unknown>;
 };
 
 type D1Like = {
   prepare(sql: string): {
-    bind(...values: SqlValue[]): {
-      all<T>(): Promise<{ results: T[] }>;
-      run(): Promise<unknown>;
-    };
+    bind(...values: SqlValue[]): D1PreparedStatement;
   };
+  batch(statements: D1PreparedStatement[]): Promise<unknown>;
 };
 
 let nodeAdapter: DatabaseAdapter | undefined;
+let nodeAdapterPromise: Promise<DatabaseAdapter> | undefined;
 
 async function getNodeAdapter(): Promise<DatabaseAdapter> {
   if (nodeAdapter) return nodeAdapter;
+  nodeAdapterPromise ??= initializeNodeAdapter();
+  try {
+    nodeAdapter = await nodeAdapterPromise;
+    return nodeAdapter;
+  } catch (error) {
+    nodeAdapterPromise = undefined;
+    throw error;
+  }
+}
 
+async function initializeNodeAdapter(): Promise<DatabaseAdapter> {
   const sqliteModuleName = "node:sqlite";
   const fsModuleName = "node:fs";
   const pathModuleName = "node:path";
@@ -59,7 +75,51 @@ async function getNodeAdapter(): Promise<DatabaseAdapter> {
       value TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS works (
+      id TEXT PRIMARY KEY,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      summary TEXT NOT NULL DEFAULT '',
+      tags TEXT NOT NULL DEFAULT '[]',
+      link_label TEXT NOT NULL DEFAULT '',
+      link_url TEXT,
+      show_gallery INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'draft',
+      published_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS works_status_published_idx ON works(status, published_at);
+    CREATE INDEX IF NOT EXISTS works_updated_idx ON works(updated_at, id);
+    CREATE TABLE IF NOT EXISTS work_images (
+      id TEXT PRIMARY KEY,
+      work_id TEXT NOT NULL REFERENCES works(id) ON DELETE CASCADE,
+      url TEXT NOT NULL,
+      caption TEXT NOT NULL DEFAULT '',
+      sort_order INTEGER NOT NULL DEFAULT 0
+    );
+    CREATE INDEX IF NOT EXISTS work_images_work_order_idx ON work_images(work_id, sort_order);
+    CREATE TABLE IF NOT EXISTS work_related_posts (
+      work_id TEXT NOT NULL REFERENCES works(id) ON DELETE CASCADE,
+      post_id TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (work_id, post_id)
+    );
+    CREATE INDEX IF NOT EXISTS work_related_posts_order_idx ON work_related_posts(work_id, sort_order);
+    CREATE TABLE IF NOT EXISTS comments (
+      id TEXT PRIMARY KEY,
+      nickname TEXT NOT NULL DEFAULT 'ANON',
+      content TEXT NOT NULL,
+      source_path TEXT NOT NULL DEFAULT '/',
+      status TEXT NOT NULL DEFAULT 'pending',
+      ip_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS comments_status_created_idx ON comments(status, created_at);
+    CREATE INDEX IF NOT EXISTS comments_ip_created_idx ON comments(ip_hash, created_at);
   `);
+  database.exec("PRAGMA optimize");
 
   const count = database.prepare("SELECT COUNT(*) AS total FROM posts").get() as { total: number };
   if (count.total === 0) {
@@ -76,15 +136,26 @@ async function getNodeAdapter(): Promise<DatabaseAdapter> {
     }
   }
 
-  nodeAdapter = {
+  return {
     async all<T>(sql: string, values: SqlValue[] = []): Promise<T[]> {
       return database.prepare(sql).all(...values) as T[];
     },
     async run(sql: string, values: SqlValue[] = []): Promise<void> {
       database.prepare(sql).run(...values);
     },
+    async batch(statements: DatabaseStatement[]): Promise<void> {
+      database.exec("BEGIN IMMEDIATE");
+      try {
+        for (const statement of statements) {
+          database.prepare(statement.sql).run(...(statement.values || []));
+        }
+        database.exec("COMMIT");
+      } catch (error) {
+        database.exec("ROLLBACK");
+        throw error;
+      }
+    },
   };
-  return nodeAdapter;
 }
 
 async function getD1Adapter(): Promise<DatabaseAdapter> {
@@ -99,6 +170,10 @@ async function getD1Adapter(): Promise<DatabaseAdapter> {
     },
     async run(sql: string, values: SqlValue[] = []): Promise<void> {
       await d1.prepare(sql).bind(...values).run();
+    },
+    async batch(statements: DatabaseStatement[]): Promise<void> {
+      if (!statements.length) return;
+      await d1.batch(statements.map((statement) => d1.prepare(statement.sql).bind(...(statement.values || []))));
     },
   };
 }

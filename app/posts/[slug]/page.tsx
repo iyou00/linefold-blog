@@ -53,13 +53,14 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   };
   return (
     <SiteShell
-      active={post.category === "tutorials" ? "TUTORIALS" : "NOTES"}
+      active="WRITING"
       artVariant={selectArticleArt(post.slug)}
+      showComments
     >
       <article className="article-page">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replaceAll("<", "\\u003c") }} />
         <header>
-          <Link className="back-link" href={post.category === "tutorials" ? "/tutorials" : "/notes"}>← 返回列表</Link>
+          <Link className="back-link" href={`/writing?category=${post.category}`}>← 返回文字列表</Link>
           <p className="post-meta">
             <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
             <span>{post.category === "tutorials" ? "TUTORIAL" : "NOTES"}</span>
